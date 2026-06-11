@@ -1,0 +1,24 @@
+# Project Requirements
+
+## Environment
+- Google Chrome Browser (Version 88 or later for Manifest V3 support)
+- Chromium-based browsers (Edge, Brave, etc. with Manifest V3 support)
+
+## Chrome Extension Permissions
+The extension requires the following permissions (defined in manifest.json):
+- `activeTab`: To access the currently active tab.
+- `scripting`: To execute scripts on the webpage for analysis.
+- `storage`: To save settings and scan history.
+- `webRequest`: To analyze network headers and technology signatures.
+- `downloads`: To export PDF and JSON reports.
+
+## Host Permissions
+- `<all_urls>`: Required to scan and analyze any website the user visits.
+
+## Third-Party Libraries (Vendored)
+- `jspdf.umd.min.js`: jsPDF library for PDF generation.
+- `jspdf.plugin.autotable.min.js`: AutoTable plugin for jsPDF to render tabular data.
+
+## Development Tools (Optional)
+- Chrome DevTools: For debugging scripts and inspecting the popup.
+- Visual Studio Code: Recommended IDE for development.

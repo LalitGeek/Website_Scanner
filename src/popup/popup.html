@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webpage Scanner</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-area">
+        <h1>Webpage Scanner</h1>
+        <span id="scan-status" class="status-indicator">Ready</span>
+      </div>
+      <div class="header-actions">
+        <button id="scan-btn" class="icon-btn" title="Rescan">🔄</button>
+        <button id="export-json" class="icon-btn" title="Export JSON">📥</button>
+        <button id="copy-btn" class="icon-btn" title="Copy to Clipboard">📋</button>
+      </div>
+    </header>
+
+    <div id="loader" class="hidden">
+      <div class="spinner"></div>
+      <p>Analyzing website...</p>
+    </div>
+
+    <main id="results">
+      <!-- Technologies Section -->
+      <section class="result-section">
+        <div class="section-header">
+          <h2>Technologies</h2>
+          <span class="count-badge" id="tech-count">0</span>
+        </div>
+        <div id="tech-list" class="category-group">
+          <!-- Categories will be injected here -->
+          <div class="empty-state">No technologies detected yet.</div>
+        </div>
+      </section>
+
+      <!-- Security Section -->
+      <section class="result-section">
+        <div class="section-header">
+          <h2>Security</h2>
+        </div>
+        <div id="security-list" class="simple-list">
+          <!-- Security items will be injected here -->
+        </div>
+      </section>
+
+      <!-- SEO & Perf Summary -->
+      <section class="result-section">
+        <div class="section-header">
+          <h2>Page Insights</h2>
+        </div>
+        <div id="insights-grid" class="insights-grid">
+          <!-- Insights will be injected here -->
+        </div>
+      </section>
+
+      <!-- Domain Intel Section -->
+      <section class="result-section">
+        <div class="section-header">
+          <h2>Domain Intelligence</h2>
+        </div>
+        <div id="intel-details" class="simple-list">
+          <div class="empty-state">Loading intelligence...</div>
+        </div>
+      </section>
+
+      <!-- Contacts Section -->
+      <section class="result-section">
+        <div class="section-header">
+          <h2>Discovered Contacts</h2>
+        </div>
+        <div id="contacts-list" class="simple-list">
+          <div class="empty-state">No contacts found.</div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Analyze any site with a single click.</p>
+      <button id="export-pdf" class="link-btn">Export PDF Report</button>
+    </footer>
+  </div>
+  <script src="../utils/jspdf.umd.min.js"></script>
+  <script src="../utils/jspdf.plugin.autotable.min.js"></script>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
