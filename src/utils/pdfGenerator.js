@@ -376,7 +376,7 @@ export async function generatePDFReport(data, hostname) {
     doc.autoTable({
       startY: currentY,
       head: [['Active Subdomain', 'Discovery Method']],
-      body: [...data.subdomains].sort().map(s => [s, 'Passive DNS Probing']),
+      body: Array.from(new Set(data.subdomains)).sort().map(s => [s, 'Passive DNS Probing']),
       margin: { left: 15, right: 15 },
       styles: { fontSize: 8, font: 'courier' },
       headStyles: { fillColor: colors.primary }

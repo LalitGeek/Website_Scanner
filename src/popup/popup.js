@@ -347,7 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!subdomainsList || !subdomainsCount) return;
     subdomainsList.innerHTML = '';
 
-    const sortedSubs = [...subdomains].sort();
+    const uniqueSubs = Array.from(new Set(subdomains));
+    const sortedSubs = [...uniqueSubs].sort();
 
     if (sortedSubs.length > 0) {
       subdomainsCount.textContent = sortedSubs.length;
