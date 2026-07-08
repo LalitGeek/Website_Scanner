@@ -44,6 +44,86 @@ document.addEventListener('DOMContentLoaded', () => {
         tabId: tab.id 
       });
 
+      // Fetch cookies using chrome.cookies API (requires tab.url)
+      let cookiesList = [];
+      try {
+        if (chrome.cookies && tab.url && !tab.url.startsWith('chrome:')) {
+          cookiesList = await chrome.cookies.getAll({ url: tab.url });
+        }
+      } catch (e) {
+        console.error('Failed to get cookies:', e);
+      }
+
+      // Execute MAIN world script to get loaded libraries and custom window globals
+      let jsInsights = { customGlobals: [], libraries: [] };
+      try {
+        if (chrome.scripting && tab.id && !tab.url.startsWith('chrome:')) {
+          const executionResult = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            world: 'MAIN',
+            func: () => {
+              // Get standard browser window keys
+              const iframe = document.createElement('iframe');
+              iframe.style.display = 'none';
+              document.body.appendChild(iframe);
+              const iframeWindow = iframe.contentWindow;
+              const standardGlobals = new Set(Object.keys(iframeWindow));
+              document.body.removeChild(iframe);
+
+              // Filter out standard globals
+              const currentPageGlobals = Object.keys(window);
+              const customGlobals = currentPageGlobals.filter(key => {
+                return !standardGlobals.has(key) && 
+                       key !== 'chrome' && 
+                       key !== 'TECH_SIGNATURES' &&
+                       key !== 'performAutoScan';
+              });
+
+              // Check for loaded libraries
+              const libraries = [];
+              if (window.jQuery || window.$) {
+                libraries.push({ name: 'jQuery', version: window.jQuery?.fn?.jquery || window.$?.fn?.jquery || 'detected' });
+              }
+              if (window.React) {
+                libraries.push({ name: 'React', version: window.React.version || 'detected' });
+              }
+              if (window.Vue) {
+                libraries.push({ name: 'Vue', version: window.Vue.version || 'detected' });
+              }
+              if (window.angular) {
+                libraries.push({ name: 'AngularJS', version: window.angular.version?.full || 'detected' });
+              }
+              if (window.Modernizr) {
+                libraries.push({ name: 'Modernizr', version: window.Modernizr._version || 'detected' });
+              }
+              if (window.Lodash || window._) {
+                libraries.push({ name: 'Lodash', version: (window.Lodash || window._).VERSION || 'detected' });
+              }
+              if (window.axios) {
+                libraries.push({ name: 'Axios', version: window.axios.VERSION || 'detected' });
+              }
+              if (window.Redux) {
+                libraries.push({ name: 'Redux', version: 'detected' });
+              }
+              if (window.Htmx) {
+                libraries.push({ name: 'HTMX', version: window.Htmx?.version || 'detected' });
+              }
+              if (window.Alpine) {
+                libraries.push({ name: 'Alpine.js', version: window.Alpine?.version || 'detected' });
+              }
+
+              return {
+                customGlobals: customGlobals.slice(0, 30),
+                libraries
+              };
+            }
+          });
+          jsInsights = executionResult?.[0]?.result || { customGlobals: [], libraries: [] };
+        }
+      } catch (e) {
+        console.error('Failed to run main world JS insights:', e);
+      }
+
       if (data && data.domResults) {
         // Merge and display
         const merged = {
@@ -62,6 +142,15 @@ document.addEventListener('DOMContentLoaded', () => {
           ip: data.ip || {},
           subdomains: data.subdomains || [],
           hostname: data.hostname || new URL(tab.url).hostname,
+          
+          // NEW FIELDS FROM SCAN!
+          pwa: data.domResults.pwa || { hasManifest: false, hasServiceWorker: false },
+          storage: data.domResults.storage || { localStorageKeys: [], sessionStorageKeys: [], localStorageCount: 0, sessionStorageCount: 0 },
+          
+          // COOKIES & INSIGHTS FROM POPUP INJECTION!
+          cookies: cookiesList,
+          jsInsights: jsInsights,
+          
           tabId: tab.id
         };
         lastResults = merged;
@@ -263,6 +352,130 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } else {
       contactsList.innerHTML = '<div class="empty-state">No contact details found.</div>';
+    }
+
+    // G. Console & PWA Rendering
+    // PWA Support
+    const pwa = data.pwa || { hasManifest: false, hasServiceWorker: false, serviceWorkerStatus: 'Not detected' };
+    const manifestStatusEl = document.getElementById('pwa-manifest-status');
+    const swStatusEl = document.getElementById('pwa-sw-status');
+    const complianceEl = document.getElementById('pwa-compliance-status');
+    
+    if (manifestStatusEl) {
+      manifestStatusEl.textContent = pwa.hasManifest ? 'Detected' : 'Missing';
+      manifestStatusEl.className = `status-badge ${pwa.hasManifest ? 'success' : 'error'}`;
+    }
+    if (swStatusEl) {
+      swStatusEl.textContent = pwa.hasServiceWorker ? 'Active' : 'Not detected';
+      swStatusEl.className = `status-badge ${pwa.hasServiceWorker ? 'success' : 'error'}`;
+    }
+    if (complianceEl) {
+      const isCompliant = pwa.hasManifest && pwa.hasServiceWorker;
+      complianceEl.textContent = isCompliant ? 'Yes' : 'No';
+      complianceEl.className = `status-badge ${isCompliant ? 'success' : 'error'}`;
+    }
+
+    // JavaScript Libraries
+    const librariesList = document.getElementById('js-libraries-list');
+    if (librariesList) {
+      librariesList.innerHTML = '';
+      const libs = data.jsInsights?.libraries || [];
+      if (libs.length > 0) {
+        libs.forEach(lib => {
+          const card = document.createElement('div');
+          card.className = 'js-lib-card';
+          card.innerHTML = `
+            <span class="js-lib-name">${lib.name}</span>
+            <span class="js-lib-ver">${lib.version}</span>
+          `;
+          librariesList.appendChild(card);
+        });
+      } else {
+        librariesList.innerHTML = '<div class="empty-state">No library runtime objects detected.</div>';
+      }
+    }
+
+    // Custom Globals
+    const globalsList = document.getElementById('js-globals-list');
+    if (globalsList) {
+      globalsList.innerHTML = '';
+      const globals = data.jsInsights?.customGlobals || [];
+      if (globals.length > 0) {
+        globals.forEach(g => {
+          const badge = document.createElement('span');
+          badge.className = 'subdomain-badge';
+          badge.textContent = g;
+          globalsList.appendChild(badge);
+        });
+      } else {
+        globalsList.innerHTML = '<div class="empty-state">No custom globals detected.</div>';
+      }
+    }
+
+    // Storage Statistics Counts
+    const cookiesCountEl = document.getElementById('count-cookies');
+    const localCountEl = document.getElementById('count-localstorage');
+    const sessionCountEl = document.getElementById('count-sessionstorage');
+    
+    const cookiesList = data.cookies || [];
+    const storageData = data.storage || { localStorageKeys: [], sessionStorageKeys: [], localStorageCount: 0, sessionStorageCount: 0 };
+
+    if (cookiesCountEl) cookiesCountEl.textContent = cookiesList.length;
+    if (localCountEl) localCountEl.textContent = storageData.localStorageCount;
+    if (sessionCountEl) sessionCountEl.textContent = storageData.sessionStorageCount;
+
+    // Cookies List Table
+    const cookiesBody = document.getElementById('cookies-list-body');
+    if (cookiesBody) {
+      cookiesBody.innerHTML = '';
+      if (cookiesList.length > 0) {
+        cookiesList.slice(0, 25).forEach(c => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td title="${c.name}">${c.name}</td>
+            <td title="${c.value}">${c.value}</td>
+            <td class="${c.secure ? 'badge-secure-yes' : 'badge-secure-no'}">${c.secure ? 'Yes' : 'No'}</td>
+            <td class="${c.httpOnly ? 'badge-secure-yes' : 'badge-secure-no'}">${c.httpOnly ? 'Yes' : 'No'}</td>
+          `;
+          cookiesBody.appendChild(row);
+        });
+      } else {
+        cookiesBody.innerHTML = '<tr><td colspan="4" class="empty-state">No active cookies found.</td></tr>';
+      }
+    }
+
+    // Local Storage Keys
+    const localKeysList = document.getElementById('localstorage-keys-list');
+    if (localKeysList) {
+      localKeysList.innerHTML = '';
+      const localKeys = storageData.localStorageKeys || [];
+      if (localKeys.length > 0) {
+        localKeys.forEach(k => {
+          const badge = document.createElement('span');
+          badge.className = 'subdomain-badge';
+          badge.textContent = k;
+          localKeysList.appendChild(badge);
+        });
+      } else {
+        localKeysList.innerHTML = '<div class="empty-state">Storage is empty.</div>';
+      }
+    }
+
+    // Session Storage Keys
+    const sessionKeysList = document.getElementById('sessionstorage-keys-list');
+    if (sessionKeysList) {
+      sessionKeysList.innerHTML = '';
+      const sessionKeys = storageData.sessionStorageKeys || [];
+      if (sessionKeys.length > 0) {
+        sessionKeys.forEach(k => {
+          const badge = document.createElement('span');
+          badge.className = 'subdomain-badge';
+          badge.textContent = k;
+          sessionKeysList.appendChild(badge);
+        });
+      } else {
+        sessionKeysList.innerHTML = '<div class="empty-state">Storage is empty.</div>';
+      }
     }
   }
 

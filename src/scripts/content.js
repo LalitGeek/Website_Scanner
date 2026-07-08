@@ -145,6 +145,39 @@ function performAutoScan() {
   });
   data.paths = Array.from(internalPaths).slice(0, 10);
 
+  // 1. PWA Detection
+  const manifestLink = document.querySelector('link[rel="manifest"]');
+  const hasServiceWorker = !!navigator.serviceWorker?.controller;
+  data.pwa = {
+    hasManifest: !!manifestLink,
+    manifestUrl: manifestLink ? manifestLink.href : null,
+    hasServiceWorker: hasServiceWorker,
+    serviceWorkerStatus: hasServiceWorker ? 'Active' : 'Not detected',
+    isPwa: !!manifestLink && hasServiceWorker
+  };
+
+  // 2. Client-side storage inspection
+  data.storage = {
+    localStorageKeys: [],
+    sessionStorageKeys: [],
+    localStorageCount: 0,
+    sessionStorageCount: 0
+  };
+
+  try {
+    data.storage.localStorageCount = localStorage.length;
+    for (let i = 0; i < Math.min(localStorage.length, 30); i++) {
+      data.storage.localStorageKeys.push(localStorage.key(i));
+    }
+  } catch (e) {}
+
+  try {
+    data.storage.sessionStorageCount = sessionStorage.length;
+    for (let i = 0; i < Math.min(sessionStorage.length, 30); i++) {
+      data.storage.sessionStorageKeys.push(sessionStorage.key(i));
+    }
+  } catch (e) {}
+
   // Send results to background
   if (chrome.runtime && chrome.runtime.id) {
     try {

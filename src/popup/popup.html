@@ -98,6 +98,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
           SEO
         </button>
+        <button class="tab-btn" data-tab="console">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Console
+        </button>
       </div>
 
       <!-- Tab Content Panels -->
@@ -210,6 +214,103 @@
               <div class="empty-state">No contact details found.</div>
             </div>
           </div>
+        </div>
+
+        <!-- PANEL 5: CONSOLE & STORAGE -->
+        <div class="tab-panel" id="panel-console">
+          
+          <!-- PWA Status Card -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Web App & PWA Status</h3>
+            </div>
+            <div class="pwa-status-grid">
+              <div class="pwa-status-item">
+                <span class="pwa-lbl">Web Manifest</span>
+                <span id="pwa-manifest-status" class="status-badge error">Missing</span>
+              </div>
+              <div class="pwa-status-item">
+                <span class="pwa-lbl">Service Worker</span>
+                <span id="pwa-sw-status" class="status-badge error">Not detected</span>
+              </div>
+              <div class="pwa-status-item">
+                <span class="pwa-lbl">PWA Compliant</span>
+                <span id="pwa-compliance-status" class="status-badge error">No</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- JavaScript Insights Card -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>JavaScript Insights</h3>
+            </div>
+            <div class="js-insights-section">
+              <h4 class="sub-section-title">Loaded Runtime Libraries</h4>
+              <div id="js-libraries-list" class="js-libs-grid">
+                <div class="empty-state">No library runtime objects detected.</div>
+              </div>
+              
+              <h4 class="sub-section-title" style="margin-top: 14px;">Custom Global Variables (window.*)</h4>
+              <div id="js-globals-list" class="badge-list scrollable-list">
+                <div class="empty-state">No custom globals detected.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Storage Details Card -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Client-Side Storage</h3>
+            </div>
+            
+            <div class="storage-stats-row">
+              <div class="storage-stat-box">
+                <span class="storage-count-val" id="count-cookies">0</span>
+                <span class="storage-lbl">Cookies</span>
+              </div>
+              <div class="storage-stat-box">
+                <span class="storage-count-val" id="count-localstorage">0</span>
+                <span class="storage-lbl">LocalStorage</span>
+              </div>
+              <div class="storage-stat-box">
+                <span class="storage-count-val" id="count-sessionstorage">0</span>
+                <span class="storage-lbl">SessionStorage</span>
+              </div>
+            </div>
+
+            <!-- Cookies Table -->
+            <h4 class="sub-section-title" style="margin-top: 14px;">Cookies Audit</h4>
+            <div class="table-scroll-container">
+              <table class="audit-table" id="cookies-table">
+                <thead>
+                  <tr>
+                    <th>Cookie Name</th>
+                    <th>Value</th>
+                    <th>Secure</th>
+                    <th>HttpOnly</th>
+                  </tr>
+                </thead>
+                <tbody id="cookies-list-body">
+                  <tr>
+                    <td colspan="4" class="empty-state">No active cookies found.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Storage Keys -->
+            <h4 class="sub-section-title" style="margin-top: 14px;">Local Storage Keys</h4>
+            <div id="localstorage-keys-list" class="badge-list scrollable-list">
+              <div class="empty-state">Storage is empty.</div>
+            </div>
+
+            <h4 class="sub-section-title" style="margin-top: 14px;">Session Storage Keys</h4>
+            <div id="sessionstorage-keys-list" class="badge-list scrollable-list">
+              <div class="empty-state">Storage is empty.</div>
+            </div>
+          </div>
+
         </div>
 
       </div>
