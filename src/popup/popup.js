@@ -308,8 +308,13 @@ document.addEventListener('DOMContentLoaded', () => {
       items.forEach(item => {
         const itemRow = document.createElement('div');
         itemRow.className = 'tech-item';
+        
+        const fallbackSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'></polyline><polyline points='8 6 2 12 8 18'></polyline></svg>`;
+        const iconUrl = getTechIconUrl(item.name);
+        
         itemRow.innerHTML = `
-          <div>
+          <div class="tech-meta-wrapper">
+            <img class="tech-logo-img" src="${iconUrl}" alt="${item.name}" onerror="this.src='${fallbackSvg}'; this.onerror=null;">
             <span class="tech-name-lbl">${item.name}</span>
             ${item.version ? `<span class="tech-ver-lbl">${item.version}</span>` : ''}
           </div>
@@ -420,6 +425,76 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // Helper: Get CDN icon URL for a technology
+  function getTechIconUrl(name) {
+    const slug = name.toLowerCase()
+      .replace('.js', 'js')
+      .replace('.org', '')
+      .replace(/\s+/g, '');
+    
+    const mapping = {
+      'vuejs': 'vuejs',
+      'react': 'react',
+      'angular': 'angularjs',
+      'angularjs': 'angularjs',
+      'jquery': 'jquery',
+      'wordpress': 'wordpress',
+      'nginx': 'nginx',
+      'apache': 'apache',
+      'laravel': 'laravel',
+      'nodejs': 'nodejs',
+      'tailwindcss': 'tailwindcss',
+      'bootstrap': 'bootstrap',
+      'google': 'google',
+      'googleanalytics': 'google',
+      'cloudflare': 'cloudflare',
+      'shopify': 'shopify',
+      'nextjs': 'nextjs',
+      'nuxtjs': 'nuxtjs',
+      'gatsby': 'gatsby',
+      'svelte': 'svelte',
+      'django': 'django',
+      'rails': 'rails',
+      'rubyonrails': 'rails',
+      'flask': 'flask',
+      'spring': 'spring',
+      'express': 'express',
+      'mysql': 'mysql',
+      'postgresql': 'postgresql',
+      'mongodb': 'mongodb',
+      'redis': 'redis',
+      'firebase': 'firebase',
+      'php': 'php',
+      'python': 'python',
+      'java': 'java',
+      'ruby': 'ruby',
+      'swift': 'swift',
+      'go': 'go',
+      'rust': 'rust',
+      'typescript': 'typescript',
+      'sass': 'sass',
+      'less': 'less',
+      'npm': 'npm',
+      'yarn': 'yarn',
+      'git': 'git',
+      'github': 'github',
+      'gitlab': 'gitlab',
+      'bitbucket': 'bitbucket',
+      'docker': 'docker',
+      'kubernetes': 'kubernetes',
+      'webrtc': 'webrtc',
+      'webpack': 'webpack',
+      'vite': 'vite'
+    };
+    
+    const finalSlug = mapping[slug] || slug;
+    
+    const plainIcons = ['wordpress', 'php', 'mysql', 'apache', 'shopify'];
+    const type = plainIcons.includes(finalSlug) ? 'plain' : 'original';
+    
+    return `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${finalSlug}/${finalSlug}-${type}.svg`;
+  }
 
   // Auto load on popup mount
   loadData();

@@ -697,6 +697,19 @@ main {
   font-family: var(--font-mono);
 }
 
+.tech-meta-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tech-logo-img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
 .tech-metrics {
   display: flex;
   align-items: center;
