@@ -146,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // NEW FIELDS FROM SCAN!
           pwa: data.domResults.pwa || { hasManifest: false, hasServiceWorker: false },
           storage: data.domResults.storage || { localStorageKeys: [], sessionStorageKeys: [], localStorageCount: 0, sessionStorageCount: 0 },
+          media: data.domResults.media || [],
           
           // COOKIES & INSIGHTS FROM POPUP INJECTION!
           cookies: cookiesList,
@@ -220,6 +221,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Assets count
     const totalAssets = (data.perf['Images'] || 0) + (data.perf['Scripts'] || 0);
     document.getElementById('stat-assets-count').textContent = `${totalAssets} elements`;
+
+    // Update Media Assets badge & button
+    const mediaCountBadge = document.getElementById('media-assets-count');
+    const downloadMediaBtn = document.getElementById('download-media-btn');
+    if (mediaCountBadge) {
+      mediaCountBadge.textContent = `${data.media?.length || 0} files`;
+    }
+    if (downloadMediaBtn) {
+      downloadMediaBtn.disabled = !data.media || data.media.length === 0;
+    }
 
     // Security health list
     const securityList = document.getElementById('security-list');
@@ -617,6 +628,66 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.clipboard.writeText(JSON.stringify(lastResults, null, 2));
     alert('Scan JSON data copied to clipboard!');
   });
+
+  const downloadMediaBtn = document.getElementById('download-media-btn');
+  if (downloadMediaBtn) {
+    downloadMediaBtn.addEventListener('click', async () => {
+      if (!lastResults || !lastResults.media || lastResults.media.length === 0) return;
+      
+      const originalText = downloadMediaBtn.innerHTML;
+      downloadMediaBtn.disabled = true;
+      downloadMediaBtn.innerHTML = 'Downloading...';
+      
+      let successCount = 0;
+      for (let i = 0; i < lastResults.media.length; i++) {
+        const url = lastResults.media[i];
+        try {
+          // Suggest filename based on URL path
+          let filename = '';
+          try {
+            const urlObj = new URL(url);
+            const pathname = urlObj.pathname;
+            filename = pathname.substring(pathname.lastIndexOf('/') + 1);
+          } catch (e) {}
+          
+          if (!filename || !filename.includes('.')) {
+            filename = `media_${i + 1}.png`;
+          }
+          
+          // Clean name for Chrome downloads (letters, numbers, dots, hyphens, underscores only)
+          filename = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+          
+          // Place downloaded media inside a dedicated folder for this hostname
+          const downloadPath = `Scanify_Media/${lastResults.hostname}/${filename}`;
+          
+          await new Promise((resolve) => {
+            chrome.downloads.download({
+              url: url,
+              filename: downloadPath,
+              conflictAction: 'uniquify'
+            }, () => {
+              if (chrome.runtime.lastError) {
+                console.warn('Download error:', chrome.runtime.lastError.message);
+              } else {
+                successCount++;
+              }
+              resolve();
+            });
+          });
+          // Rate-limit downloads slightly (100ms) to ensure stability
+          await new Promise(r => setTimeout(r, 100));
+        } catch (err) {
+          console.error('Failed to trigger download:', err);
+        }
+      }
+      
+      downloadMediaBtn.innerHTML = `Success (${successCount}/${lastResults.media.length})`;
+      setTimeout(() => {
+        downloadMediaBtn.disabled = false;
+        downloadMediaBtn.innerHTML = originalText;
+      }, 3000);
+    });
+  }
 
   document.getElementById('export-pdf').addEventListener('click', async () => {
     if (!lastResults) {

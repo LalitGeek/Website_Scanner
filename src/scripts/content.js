@@ -145,6 +145,59 @@ function performAutoScan() {
   });
   data.paths = Array.from(internalPaths).slice(0, 10);
 
+  // Media Discovery (all images, background images, svgs, video sources)
+  const mediaUrls = new Set();
+  try {
+    // 1. Img tags
+    document.querySelectorAll('img').forEach(img => {
+      if (img.src) {
+        mediaUrls.add(img.src);
+      }
+      if (img.srcset) {
+        img.srcset.split(',').forEach(item => {
+          const parts = item.trim().split(/\s+/);
+          if (parts[0]) {
+            try {
+              mediaUrls.add(new URL(parts[0], location.href).href);
+            } catch (e) {}
+          }
+        });
+      }
+    });
+
+    // 2. CSS Background images
+    document.querySelectorAll('*').forEach(el => {
+      const bgImg = window.getComputedStyle(el).backgroundImage;
+      if (bgImg && bgImg !== 'none') {
+        const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
+        if (match && match[1]) {
+          try {
+            mediaUrls.add(new URL(match[1], location.href).href);
+          } catch (e) {}
+        }
+      }
+    });
+
+    // 3. SVGs & Icons
+    document.querySelectorAll('link[rel*="icon"]').forEach(link => {
+      if (link.href) mediaUrls.add(link.href);
+    });
+
+    // 4. Video sources
+    document.querySelectorAll('video, video source').forEach(v => {
+      if (v.src) mediaUrls.add(v.src);
+    });
+  } catch (e) {}
+
+  data.media = Array.from(mediaUrls).filter(url => {
+    try {
+      const u = new URL(url);
+      return u.protocol.startsWith('http');
+    } catch (e) {
+      return false;
+    }
+  });
+
   // 1. PWA Detection
   const manifestLink = document.querySelector('link[rel="manifest"]');
   const hasServiceWorker = !!navigator.serviceWorker?.controller;
