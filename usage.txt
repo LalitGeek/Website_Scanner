@@ -1,30 +1,43 @@
-# How to Use Webpage Scanner
+# How to Use Scanify | Web Auditor
 
-Follow these steps to get the most out of the Webpage Scanner extension:
+Follow these instructions to run and evaluate your audited pages using Scanify:
 
-### 1. Launching the Extension
-- Navigate to any website you wish to analyze.
-- Click on the **Webpage Scanner** icon in your Chrome toolbar.
-- The popup interface will appear and automatically begin a basic analysis of the current page.
+### 1. Launching the Auditor
+- Open your browser and go to the target website you wish to scan.
+- Click on the **Scanify | Web Auditor** logo in your Chrome toolbar.
+- The glassmorphic SaaS dashboard will display. The scanner will automatically load pre-cached results or launch a live analysis of the active page.
 
-### 2. Performing a Scan
-- If the scan doesn't start automatically, or if you want to refresh the data, click the **Scan Now** button in the popup.
-- The status indicator at the top will show the progress of the scan.
+### 2. Navigating the Dashboard Sections
+Scanify distributes complex audits across 4 premium panels:
+- **Overview**: 
+  - **Audit Score**: A radial score (0-100) combining Security configuration and SEO validity.
+  - **SaaS Indicators**: Fast diagnostics for Load Time (in ms) and total HTML script/image assets.
+  - **Security Audits**: Real-time checklist for HTTPS, CSP, HSTS, Secure Cookies, and Mixed Content.
+  - **Key Indicators**: Fast pills for WebSockets, Server OS, Sitemap, and fonts discovered.
+- **Stack (Tech Stack)**:
+  - Lists frameworks, analytics engines, web servers, and CDNs grouped by tier.
+  - **Search filter**: Use the input box to instantly filter technologies by category or name.
+- **Intel (Domain Intelligence)**:
+  - Network metadata (IP, ASN, ISP provider, server host country, OS).
+  - **Discovered Subdomains**: Lists active subdomains resolved via background passive DNS querying.
+  - **DNS Zone Records**: Scrollable grid showing A, AAAA, MX, NS, and TXT records.
+- **SEO (SEO & Contacts)**:
+  - Search Optimization metadata (Page Title, Meta Description, Canonical URL).
+  - Headings pill count (H1, H2, H3 tags).
+  - **Extracted Contacts**: Formatted emails and phone numbers discovered in the page content.
 
-### 3. Reviewing Results
-The results are organized into several tabs/sections:
-- **Technologies**: View the detected frameworks, servers, and libraries with confidence percentages.
-- **Security**: Check if the site passes essential security header checks and HTTPS requirements.
-- **Insights/SEO**: Review metadata, heading structures, and asset counts.
-- **Domain Intel**: See the server's IP address, network provider, and OS.
-- **Contacts**: View discovered email addresses and phone numbers.
+### 3. Header Action Controls
+At the top right of the dashboard, you have:
+- **Status Indicator**: Shows state (`Scanning`, `Scanned`, `Exporting`).
+- **🔄 Rescan button**: Triggers a manual page re-evaluation.
+- **📥 Export JSON button**: Downloads raw JSON structured audit results.
+- **📋 Copy to Clipboard button**: Copies the full JSON block to your clip register.
+- **💖 Donate & Support button (Heart icon)**: Opens a secure Razorpay checkout page in a new tab.
 
-### 4. Exporting Data
-- **PDF Report**: Click the "Export PDF" button to generate a professional, enterprise-style audit report. This includes a screenshot of the site (if enabled).
-- **JSON Data**: Click "Export JSON" to download the raw data for further analysis.
-- **Copy to Clipboard**: Use the "Copy" icon to quickly copy the JSON result to your clipboard.
+### 4. Professional PDF Exports
+- Click **Generate Audit PDF** at the bottom of the popup.
+- Scanify will capture a screenshot of the active tab, load the brand logo, assemble clean tabular layouts, and compile an executive audit report, saving it directly to your downloads.
 
 ### 5. Troubleshooting
-- **No data found**: Ensure you are on a valid webpage (not a Chrome internal page like chrome://settings).
-- **PDF Export fails**: Ensure the page has finished loading before clicking export, as it may need to capture a screenshot.
-- **Permissions**: Ensure you have granted the extension permission to access the site if prompted.
+- **Missing Domain Intel**: Ensure the site is public and you are connected to the network, as DNS/IP APIs query external servers.
+- **Permissions**: If a site blocks scans, ensure the extension has "Allow access to all sites" checked in extension settings.

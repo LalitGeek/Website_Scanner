@@ -1,38 +1,37 @@
-# Webpage Scanner - Professional Audit Tool
+# Scanify | Web Auditor - Professional SaaS Audit Tool
 
-Webpage Scanner is a powerful Chrome extension designed for developers, security researchers, and SEO analysts. It performs a comprehensive analysis of any active tab, providing insights into its technology stack, security posture, SEO optimization, and performance metrics.
+Scanify is a powerful, enterprise-grade Chrome extension designed for developers, security researchers, and SEO analysts. Featuring an industry-level, responsive glassmorphic SaaS dashboard interface, Scanify performs high-fidelity audits of any active tab, extracting security postures, technology stacks, SEO parameters, and DNS/subdomain architecture.
 
 ## 🚀 Key Features
 
-- **Technology Detection**: Identifies frameworks (React, Angular, Vue), CMS (WordPress, Joomla), web servers (Nginx, Apache), and more with confidence scoring.
-- **Security Audit**: Checks for HTTPS, Content Security Policy (CSP), HSTS, Secure Cookies, and X-Frame-Options.
-- **SEO Analysis**: Analyzes Title, Meta Description, OpenGraph tags, Canonical URLs, and Heading structure.
-- **Performance Metrics**: Reports on asset counts (images, scripts, CSS) and basic load time insights.
-- **Infrastructure Intel**: Provides IP address details, ASN/Provider information, and Server OS detection.
-- **Contact Discovery**: Automatically finds public email addresses and phone numbers on the page.
-- **Professional Export**: Export your findings as a high-quality, enterprise-ready PDF report or a raw JSON file.
+* **SaaS-Level Dark Mode Dashboard**: Elegant UI/UX panel compartmentalized into intuitive tabs (**Overview**, **Stack**, **Intel**, **SEO**) with custom scrollbars, animated circular audit score gauges, and glowing micro-actions.
+* **Advanced Technology Stack Engine**: Evaluates global window properties, HTML structures, and scripts against a signature database of **60+ modern technologies** (React, Angular, Nginx, WordPress, etc.) to list versions without cluttering confidence meters.
+* **Real-time Stack Filter**: Interactive search input inside the Stack tab allowing users to filter identified frameworks, CMS, and servers instantly.
+* **Passive Subdomain Probing**: Dynamically queries Google DNS for **40 popular subdomains** in the background, rendering active instances in real-time as they resolve.
+* **Comprehensive DNS Zone Listing**: Retrieves and renders key DNS records (A, AAAA, MX, NS, TXT) inside the dashboard.
+* **Security Checklists**: Checks for HTTPS, Content Security Policy (CSP), HTTP Strict Transport Security (HSTS), Secure Cookies, and Mixed Content.
+* **SEO Insights**: Scans Meta Title, Meta Description length, Canonical links, and H1-H3 heading summaries.
+* **Sponsorship Channel**: Integrated quick-sponsorship button in the header actions linking directly to a secure Razorpay gateway.
+* **Professional PDF Exports**: Generates executive-ready PDF audit reports featuring the brand logo, color-coded grid tables, subdomain lists, sitemaps, and screenshot capture.
 
-## 🛠️ Technical Stack
-
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3.
-- **Extension API**: Chrome Extensions Manifest V3.
-- **Libraries**: 
-  - `jsPDF`: For generating professional PDF reports.
-  - `jsPDF-AutoTable`: For rendering tables within PDF reports.
-- **Utilities**: Custom phone number formatter and report generator.
+---
 
 ## 📂 Project Structure
 
 ```text
 ├── manifest.json         # Extension configuration (Manifest V3)
-├── PRD.md                # Product Requirements Document
+├── usage.txt             # Step-by-step extension user guide
 ├── src/
-│   ├── popup/            # UI components for the extension popup
-│   ├── scripts/          # Background and Content scripts for scanning
-│   ├── icons/            # Extension icons
-│   └── utils/            # Shared utilities (PDF gen, formatting)
-└── README.md             # Project documentation
+│   ├── popup/            # SaaS tabbed popup UI files (HTML, CSS, JS)
+│   ├── scripts/          # Background worker, DNS resolvers, Content scripts
+│   │   ├── content.js        # DOM scraping & global variables scanner
+│   │   ├── background.js     # DNS prober, subdomain scanner, screenshot taker
+│   │   └── techSignatures.js # Multi-dimensional signature database
+│   ├── icons/            # Translucent brand logo assets (16x16, 48x48, 128x128, 512x512)
+│   └── utils/            # PDF Generator core, Phone formatters, libraries
 ```
+
+---
 
 ## ⚙️ Installation (Development Mode)
 
@@ -41,7 +40,9 @@ Webpage Scanner is a powerful Chrome extension designed for developers, security
 3. Enable **Developer mode** using the toggle in the top right corner.
 4. Click the **Load unpacked** button.
 5. Select the root directory of this project.
-6. The Webpage Scanner icon should now appear in your extension list.
+6. The **Scanify | Web Auditor** icon will appear on your toolbar.
+
+---
 
 ## 📄 License
 
