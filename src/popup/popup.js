@@ -314,11 +314,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         itemRow.innerHTML = `
           <div class="tech-meta-wrapper">
-            <img class="tech-logo-img" src="${iconUrl}" alt="${item.name}" onerror="this.src='${fallbackSvg}'; this.onerror=null;">
+            <img class="tech-logo-img" src="${iconUrl}" alt="${item.name}">
             <span class="tech-name-lbl">${item.name}</span>
             ${item.version ? `<span class="tech-ver-lbl">${item.version}</span>` : ''}
           </div>
         `;
+
+        const img = itemRow.querySelector('.tech-logo-img');
+        if (img) {
+          img.addEventListener('error', () => {
+            img.src = fallbackSvg;
+          }, { once: true });
+        }
+
         itemsGrid.appendChild(itemRow);
       });
 
