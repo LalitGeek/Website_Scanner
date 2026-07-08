@@ -38,22 +38,22 @@ chrome.webRequest.onHeadersReceived.addListener(
       const xPoweredBy = (headerMap['x-powered-by'] || '').toLowerCase();
       
       // Server/Backend (High confidence if in headers)
-      if (server.includes('nginx')) tech.push({ name: 'Nginx', category: 'Server', confidence: 100 });
-      if (server.includes('apache')) tech.push({ name: 'Apache', category: 'Server', confidence: 100 });
-      if (server.includes('express')) tech.push({ name: 'Express', category: 'Backend', confidence: 100 });
-      if (xPoweredBy.includes('next.js')) tech.push({ name: 'Next.js', category: 'Backend', confidence: 100 });
-      if (xPoweredBy.includes('express')) tech.push({ name: 'Express', category: 'Backend', confidence: 100 });
-      if (xPoweredBy.includes('php')) tech.push({ name: 'PHP', category: 'Backend/CMS', confidence: 100 });
+      if (server.includes('nginx')) tech.push({ name: 'Nginx', category: 'Web Server', confidence: 100 });
+      if (server.includes('apache')) tech.push({ name: 'Web Server', category: 'Server', confidence: 100 });
+      if (server.includes('litespeed')) tech.push({ name: 'LiteSpeed', category: 'Web Server', confidence: 100 });
+      if (server.includes('express') || xPoweredBy.includes('express')) tech.push({ name: 'Express', category: 'Backend', confidence: 100 });
+      if (xPoweredBy.includes('next.js')) tech.push({ name: 'Next.js', category: 'Frontend Framework', confidence: 100 });
+      if (xPoweredBy.includes('php')) tech.push({ name: 'PHP', category: 'Backend', confidence: 100 });
       
       // CDN/PaaS/Cloud/Hosting
-      if (server.includes('cloudflare') || headerMap['cf-ray']) tech.push({ name: 'Cloudflare', category: 'CDN/Cloud', confidence: 100 });
+      if (server.includes('cloudflare') || headerMap['cf-ray']) tech.push({ name: 'Cloudflare', category: 'CDN', confidence: 100 });
       if (server.includes('gse') || server.includes('ghs')) tech.push({ name: 'Google Cloud (GCP)', category: 'Cloud', confidence: 100 });
       if (server.includes('amazons3') || headerMap['x-amz-cf-id']) tech.push({ name: 'AWS', category: 'Cloud', confidence: 100 });
       if (server.includes('github.com')) tech.push({ name: 'GitHub Pages', category: 'Hosting', confidence: 100 });
       
-      if (headerMap['x-vercel-id']) tech.push({ name: 'Vercel', category: 'PaaS/Hosting', confidence: 100 });
-      if (headerMap['x-nf-request-id']) tech.push({ name: 'Netlify', category: 'PaaS/Hosting', confidence: 100 });
-      if (headerMap['x-heroku-id'] || xPoweredBy.includes('heroku')) tech.push({ name: 'Heroku', category: 'PaaS', confidence: 100 });
+      if (headerMap['x-vercel-id']) tech.push({ name: 'Vercel', category: 'Hosting', confidence: 100 });
+      if (headerMap['x-nf-request-id']) tech.push({ name: 'Netlify', category: 'Hosting', confidence: 100 });
+      if (headerMap['x-heroku-id'] || xPoweredBy.includes('heroku')) tech.push({ name: 'Heroku', category: 'Hosting', confidence: 100 });
       if (headerMap['x-azure-ref'] || server.includes('microsoft')) tech.push({ name: 'Microsoft Azure', category: 'Cloud', confidence: 100 });
       if (headerMap['x-do-cf-id']) tech.push({ name: 'DigitalOcean', category: 'Cloud', confidence: 100 });
       if (headerMap['x-pantheon-endpoint']) tech.push({ name: 'Pantheon', category: 'Hosting', confidence: 100 });
@@ -125,9 +125,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+function getRootDomain(hostname) {
+  if (!hostname) return '';
+  const parts = hostname.split('.');
+  if (parts.length <= 2) return hostname;
+  
+  // Common double-barrelled TLDs
+  const doubleTlds = [
+    'co.uk', 'org.uk', 'gov.uk', 'me.uk', 'net.uk', 'com.au', 'net.au', 'org.au', 
+    'com.br', 'net.br', 'com.cn', 'edu.cn', 'gov.cn', 'com.eg', 'com.fr', 'com.hk', 
+    'org.hk', 'com.id', 'co.id', 'co.in', 'net.in', 'org.in', 'gen.in', 'firm.in', 
+    'ind.in', 'co.jp', 'org.jp', 'com.mx', 'com.my', 'com.sg', 'com.tw', 'org.tw', 
+    'com.tr', 'co.za', 'org.za'
+  ];
+  
+  const lastTwo = parts.slice(-2).join('.');
+  if (doubleTlds.includes(lastTwo) && parts.length >= 3) {
+    return parts.slice(-3).join('.');
+  }
+  return parts.slice(-2).join('.');
+}
+
 async function fetchExtraData(tabId, hostname) {
   if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1') return;
-  const rootDomain = hostname.split('.').slice(-2).join('.');
+  const rootDomain = getRootDomain(hostname);
 
   // 1. Check Sitemap
   fetch(`https://${hostname}/sitemap.xml`, { method: 'HEAD' }).then(res => {
@@ -155,15 +176,33 @@ async function fetchExtraData(tabId, hostname) {
       }).catch(() => {});
   });
 
-  // 4. Subdomain Discovery (Passive Probing)
-  const subPrefixes = ['api', 'mail', 'dev', 'test', 'admin', 'cdn'];
+  // 4. Subdomain Discovery (Passive Probing with 40 common subdomains)
+  const subPrefixes = [
+    'www', 'api', 'mail', 'dev', 'test', 'admin', 'cdn', 'blog', 'shop', 'staging', 
+    'status', 'docs', 'git', 'secure', 'portal', 'app', 'vpn', 'dns', 'support', 
+    'files', 'news', 'monitor', 'demo', 'm', 'internal', 'billing', 'api-docs', 
+    'api-dev', 'ftp', 'local', 'services', 'analytics', 'console', 'dashboard',
+    'prod', 'qa', 'client', 'server', 'db', 'media', 'assets', 'static', 'beta'
+  ];
   subPrefixes.forEach(sub => {
     const subHost = `${sub}.${rootDomain}`;
+    // Don't scan the current hostname if it matches
+    if (subHost === hostname) return;
+    
     fetch(`https://dns.google/resolve?name=${subHost}&type=A`)
       .then(res => res.json())
       .then(data => {
         if (data.Answer && currentData[tabId]) {
-          currentData[tabId].subdomains.push(subHost);
+          if (!currentData[tabId].subdomains.includes(subHost)) {
+            currentData[tabId].subdomains.push(subHost);
+            
+            // Notify active popups if they are open and listening
+            chrome.runtime.sendMessage({
+              action: 'SUBDOMAIN_FOUND',
+              subdomain: subHost,
+              tabId: tabId
+            }).catch(() => {}); // Catch if popup is closed (expected)
+          }
         }
       }).catch(() => {});
   });

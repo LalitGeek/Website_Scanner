@@ -1,91 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webpage Scanner</title>
+  <title>Scanify | Web Auditor</title>
   <link rel="stylesheet" href="popup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <div class="container">
-    <header>
+    <header class="app-header">
       <div class="logo-area">
-        <h1>Webpage Scanner</h1>
-        <span id="scan-status" class="status-indicator">Ready</span>
+        <img src="../icons/logo.png" alt="Scanify Logo" class="brand-logo">
+        <span class="logo-text">Scanify</span>
+        <span class="logo-badge">PRO</span>
       </div>
       <div class="header-actions">
-        <button id="scan-btn" class="icon-btn" title="Rescan">🔄</button>
-        <button id="export-json" class="icon-btn" title="Export JSON">📥</button>
-        <button id="copy-btn" class="icon-btn" title="Copy to Clipboard">📋</button>
+        <span id="scan-status" class="status-indicator">Ready</span>
+        <button id="scan-btn" class="icon-btn" title="Rescan Website">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        </button>
+        <button id="export-json" class="icon-btn" title="Export JSON Data">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </button>
+        <button id="copy-btn" class="icon-btn" title="Copy to Clipboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <a href="https://pages.razorpay.com/pl_T24NeBzCFmcSn5/view" target="_blank" class="icon-btn donate-icon-btn" title="Donate & Support">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </a>
       </div>
     </header>
 
-    <div id="loader" class="hidden">
-      <div class="spinner"></div>
-      <p>Analyzing website...</p>
+    <!-- Loader Panel -->
+    <div id="loader" class="loader-container hidden">
+      <div class="loader-spinner">
+        <svg viewBox="0 0 50 50">
+          <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+      </div>
+      <p class="loader-text">Analyzing page elements...</p>
+      <p class="loader-subtext">Probing DNS, headers, and dependencies</p>
     </div>
 
+    <!-- Main Results Dashboard -->
     <main id="results">
-      <!-- Technologies Section -->
-      <section class="result-section">
-        <div class="section-header">
-          <h2>Technologies</h2>
-          <span class="count-badge" id="tech-count">0</span>
+      
+      <!-- SaaS Hero Overview Section -->
+      <section class="hero-section">
+        <div class="score-card">
+          <div class="score-ring-container">
+            <svg class="progress-ring" width="76" height="76">
+              <circle class="progress-ring__bg" stroke="rgba(255,255,255,0.05)" stroke-width="5.5" fill="transparent" r="32" cx="38" cy="38"/>
+              <circle class="progress-ring__circle" id="score-circle-bar" stroke="url(#scoreGrad)" stroke-width="5.5" fill="transparent" r="32" cx="38" cy="38" stroke-dasharray="201.06" stroke-dashoffset="201.06" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#818cf8" />
+                  <stop offset="100%" stop-color="#6366f1" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="score-value">
+              <span id="overall-score">0</span>
+              <span class="score-label">AUDIT</span>
+            </div>
+          </div>
         </div>
-        <div id="tech-list" class="category-group">
-          <!-- Categories will be injected here -->
-          <div class="empty-state">No technologies detected yet.</div>
-        </div>
-      </section>
-
-      <!-- Security Section -->
-      <section class="result-section">
-        <div class="section-header">
-          <h2>Security</h2>
-        </div>
-        <div id="security-list" class="simple-list">
-          <!-- Security items will be injected here -->
-        </div>
-      </section>
-
-      <!-- SEO & Perf Summary -->
-      <section class="result-section">
-        <div class="section-header">
-          <h2>Page Insights</h2>
-        </div>
-        <div id="insights-grid" class="insights-grid">
-          <!-- Insights will be injected here -->
-        </div>
-      </section>
-
-      <!-- Domain Intel Section -->
-      <section class="result-section">
-        <div class="section-header">
-          <h2>Domain Intelligence</h2>
-        </div>
-        <div id="intel-details" class="simple-list">
-          <div class="empty-state">Loading intelligence...</div>
+        <div class="hero-meta">
+          <h1 id="domain-title" class="domain-title">detecting.com</h1>
+          <p id="ip-subtitle" class="ip-subtitle">IP: Resolving...</p>
+          <div class="quick-pills">
+            <span class="pill-badge tech-badge"><span id="pill-tech-count">0</span> Techs</span>
+            <span class="pill-badge sec-badge"><span id="pill-sec-passed">0</span>/5 Security</span>
+          </div>
         </div>
       </section>
 
-      <!-- Contacts Section -->
-      <section class="result-section">
-        <div class="section-header">
-          <h2>Discovered Contacts</h2>
+      <!-- Glassmorphic Tabs Navigation -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          Overview
+        </button>
+        <button class="tab-btn" data-tab="tech">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Stack
+        </button>
+        <button class="tab-btn" data-tab="intel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Intel
+        </button>
+        <button class="tab-btn" data-tab="seo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          SEO
+        </button>
+      </div>
+
+      <!-- Tab Content Panels -->
+      <div class="tab-panels">
+
+        <!-- PANEL 1: OVERVIEW -->
+        <div class="tab-panel active" id="panel-overview">
+          <div class="card-grid-row">
+            <div class="grid-card-stat">
+              <span class="stat-label">Full Load Time</span>
+              <span class="stat-value" id="stat-load-time">N/A</span>
+            </div>
+            <div class="grid-card-stat">
+              <span class="stat-label">Total Assets</span>
+              <span class="stat-value" id="stat-assets-count">0</span>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Security Audits</h3>
+            </div>
+            <div id="security-list" class="health-checklist">
+              <!-- Security items injected here -->
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Key Indicators</h3>
+            </div>
+            <div class="key-indicators-grid" id="key-indicators-list">
+              <!-- Inline insights cards -->
+            </div>
+          </div>
         </div>
-        <div id="contacts-list" class="simple-list">
-          <div class="empty-state">No contacts found.</div>
+
+        <!-- PANEL 2: TECH STACK -->
+        <div class="tab-panel" id="panel-tech">
+          <div class="search-filter-wrapper">
+            <input type="text" id="tech-search" placeholder="Search stack (e.g. React, Nginx)..." class="search-input">
+          </div>
+          <div id="tech-list" class="tech-category-list">
+            <!-- Tech stack groups injected here -->
+            <div class="empty-state">No technologies detected yet.</div>
+          </div>
         </div>
-      </section>
+
+        <!-- PANEL 3: DOMAIN INTEL -->
+        <div class="tab-panel" id="panel-intel">
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Network Intelligence</h3>
+            </div>
+            <div id="intel-details" class="intel-grid">
+              <!-- Grid values injected here -->
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Discovered Subdomains</h3>
+              <span class="badge" id="subdomains-count">0</span>
+            </div>
+            <div id="subdomains-list" class="badge-list scrollable-list">
+              <div class="empty-state">No subdomains discovered.</div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-header">
+              <h3>DNS Zone Records</h3>
+            </div>
+            <div id="dns-records-list" class="dns-records-wrapper">
+              <div class="empty-state">No DNS entries discovered.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 4: SEO & CONTACTS -->
+        <div class="tab-panel" id="panel-seo">
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Search Optimization</h3>
+            </div>
+            <div class="seo-fields-list">
+              <div class="seo-field">
+                <span class="seo-title-lbl">Meta Title</span>
+                <p id="seo-meta-title" class="seo-val-txt">Missing</p>
+              </div>
+              <div class="seo-field">
+                <span class="seo-title-lbl">Meta Description</span>
+                <p id="seo-meta-desc" class="seo-val-txt">Missing</p>
+              </div>
+              <div class="seo-field">
+                <span class="seo-title-lbl">Canonical URL</span>
+                <p id="seo-meta-canonical" class="seo-val-txt">Not Set</p>
+              </div>
+              <div class="seo-headings-summary" id="seo-headings-group">
+                <!-- Heading pill counts -->
+              </div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Extracted Contacts</h3>
+            </div>
+            <div id="contacts-list" class="contacts-grid">
+              <div class="empty-state">No contact details found.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </main>
 
-    <footer>
-      <p>Analyze any site with a single click.</p>
-      <button id="export-pdf" class="link-btn">Export PDF Report</button>
+    <footer class="app-footer">
+      <div class="footer-meta">
+        <span>Scanify Web Auditor v1.2</span>
+      </div>
+      <button id="export-pdf" class="btn-pdf-export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        Generate Audit PDF
+      </button>
     </footer>
   </div>
   <script src="../utils/jspdf.umd.min.js"></script>
   <script src="../utils/jspdf.plugin.autotable.min.js"></script>
   <script src="popup.js" type="module"></script>
 </body>
+
 </html>

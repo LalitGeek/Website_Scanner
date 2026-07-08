@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Webpage Scanner",
-  "version": "0.1.0",
+  "name": "Scanify | Web Auditor",
+  "version": "1.2.0",
   "description": "Analyze websites for security, technology, SEO, and performance insights.",
   "permissions": [
     "activeTab",
@@ -32,7 +32,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/scripts/content.js"]
+      "js": ["src/scripts/techSignatures.js", "src/scripts/content.js"]
     }
   ]
 }

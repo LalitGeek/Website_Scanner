@@ -13,6 +13,20 @@ export async function generatePDFReport(data, hostname) {
   const doc = new jsPDF();
   const timestamp = new Date().toLocaleString();
 
+  // Load brand logo image
+  let logoImg = null;
+  try {
+    const logoUrl = chrome.runtime.getURL('src/icons/logo.png');
+    logoImg = await new Promise((resolve) => {
+      const img = new Image();
+      img.src = logoUrl;
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+    });
+  } catch (e) {
+    console.warn('Failed to load logo image:', e);
+  }
+
   // Modern Color Palette
   const colors = {
     primary: [37, 99, 235],    // Royal Blue
@@ -68,13 +82,26 @@ export async function generatePDFReport(data, hostname) {
   doc.rect(5, 0, 205, 45, 'F');
   
   doc.setTextColor(...colors.white);
-  doc.setFontSize(26);
-  doc.setFont('helvetica', 'bold');
-  doc.text('AUDIT REPORT', 15, 22);
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('WEBPAGE SCANNER ENTERPRISE EDITION', 15, 30);
+  if (logoImg) {
+    // Draw brand logo (10x10 mm)
+    doc.addImage(logoImg, 'PNG', 15, 12, 10, 10);
+    
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AUDIT REPORT', 29, 20);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('SCANIFY WEB AUDITOR ENTERPRISE PRO', 29, 27);
+  } else {
+    doc.setFontSize(26);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AUDIT REPORT', 15, 22);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('WEBPAGE SCANNER ENTERPRISE EDITION', 15, 30);
+  }
 
   // PRO Badge
   doc.setFillColor(255, 255, 255, 0.2);
@@ -128,14 +155,14 @@ export async function generatePDFReport(data, hostname) {
   });
 
   Object.entries(techCategories).forEach(([cat, items]) => {
-    // Show tech name with its confidence score
-    const confidenceStr = items.map(i => `${i.name} (${i.confidence || 50}%)`).join(', ');
-    techRows.push([cat, confidenceStr]);
+    // Show tech name with its version (if available)
+    const techStr = items.map(i => i.version ? `${i.name} (${i.version})` : i.name).join(', ');
+    techRows.push([cat, techStr]);
   });
 
   doc.autoTable({
     startY: currentY,
-    head: [['Domain Layer', 'Technologies Detected (Confidence)']],
+    head: [['Domain Layer', 'Technologies Detected']],
     body: techRows,
     margin: { left: 15, right: 15 },
     styles: { fontSize: 9, cellPadding: 4 },
@@ -349,7 +376,7 @@ export async function generatePDFReport(data, hostname) {
     doc.autoTable({
       startY: currentY,
       head: [['Active Subdomain', 'Discovery Method']],
-      body: data.subdomains.map(s => [s, 'Passive DNS Probing']),
+      body: [...data.subdomains].sort().map(s => [s, 'Passive DNS Probing']),
       margin: { left: 15, right: 15 },
       styles: { fontSize: 8, font: 'courier' },
       headStyles: { fillColor: colors.primary }
