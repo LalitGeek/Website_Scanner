@@ -14,6 +14,7 @@ Scanify distributes complex audits across 5 premium panels:
   - **SaaS Indicators**: Fast diagnostics for Load Time (in ms) and total HTML script/image assets.
   - **Security Audits**: Real-time checklist for HTTPS, CSP, HSTS, Secure Cookies, and Mixed Content.
   - **Key Indicators**: Fast pills for WebSockets, Server OS, Sitemap, and fonts discovered.
+  - **Media Assets Downloader**: Displays the total count of images, background graphics, SVGs, and video assets discovered on the page. Provides a **Download All Media** button that batch downloads these resources directly to a clean folder structured under `Scanify_Media/[domain-name]/`.
 - **Stack (Tech Stack)**:
   - Lists frameworks, analytics engines, web servers, and CDNs grouped by tier.
   - **Search filter**: Use the input box to instantly filter technologies by category or name.
