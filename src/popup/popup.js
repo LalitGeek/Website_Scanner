@@ -433,11 +433,13 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace('.org', '')
       .replace(/\s+/g, '');
     
-    const mapping = {
-      'vuejs': 'vuejs',
+    // Devicon mapping (for colored original logos)
+    const deviconMap = {
       'react': 'react',
       'angular': 'angularjs',
       'angularjs': 'angularjs',
+      'vuejs': 'vuejs',
+      'vue.js': 'vuejs',
       'jquery': 'jquery',
       'wordpress': 'wordpress',
       'nginx': 'nginx',
@@ -446,17 +448,18 @@ document.addEventListener('DOMContentLoaded', () => {
       'nodejs': 'nodejs',
       'tailwindcss': 'tailwindcss',
       'bootstrap': 'bootstrap',
-      'google': 'google',
-      'googleanalytics': 'google',
       'cloudflare': 'cloudflare',
+      'cloudflareturnstile': 'cloudflare',
       'shopify': 'shopify',
       'nextjs': 'nextjs',
+      'next.js': 'nextjs',
       'nuxtjs': 'nuxtjs',
+      'nuxt.js': 'nuxtjs',
       'gatsby': 'gatsby',
       'svelte': 'svelte',
       'django': 'django',
       'rails': 'rails',
-      'rubyonrails': 'rails',
+      'ruby-on-rails': 'rails',
       'flask': 'flask',
       'spring': 'spring',
       'express': 'express',
@@ -485,15 +488,84 @@ document.addEventListener('DOMContentLoaded', () => {
       'kubernetes': 'kubernetes',
       'webrtc': 'webrtc',
       'webpack': 'webpack',
-      'vite': 'vite'
+      'vite': 'vite',
+      'aws': 'amazonwebservices',
+      'heroku': 'heroku',
+      'netlify': 'netlify',
+      'vercel': 'vercel',
+      'supabase': 'supabase',
+      'ionic': 'ionic',
+      'joomla': 'joomla',
+      'drupal': 'drupal',
+      'magento': 'magento',
+      'woocommerce': 'woocommerce',
+      'wix': 'wix',
+      'squarespace': 'squarespace',
+      'webflow': 'webflow',
+      'backbonejs': 'backbonejs',
+      'emberjs': 'ember',
+      'bulma': 'bulma',
+      'd3js': 'd3js',
+      'threejs': 'threejs',
+      'vuetify': 'vuetify',
+      'alpinejs': 'alpinejs',
+      'astro': 'astro'
     };
-    
-    const finalSlug = mapping[slug] || slug;
-    
-    const plainIcons = ['wordpress', 'php', 'mysql', 'apache', 'shopify'];
-    const type = plainIcons.includes(finalSlug) ? 'plain' : 'original';
-    
-    return `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${finalSlug}/${finalSlug}-${type}.svg`;
+
+    // If it is in deviconMap, load the colorful original devicon logo
+    if (deviconMap[slug]) {
+      const finalSlug = deviconMap[slug];
+      const plainIcons = ['wordpress', 'php', 'mysql', 'apache', 'shopify'];
+      const type = plainIcons.includes(finalSlug) ? 'plain' : 'original';
+      return `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${finalSlug}/${finalSlug}-${type}.svg`;
+    }
+
+    // Iconify/Simple-Icons mapping for brand icons not in Devicon (using #cbd5e1 for high visibility)
+    const iconifyMap = {
+      'algolia': 'algolia',
+      'amplitude': 'amplitude',
+      'axios': 'axios',
+      'blogger': 'blogger',
+      'chakraui': 'chakraui',
+      'chartjs': 'chartdotjs',
+      'criteo': 'criteo',
+      'facebookpixel': 'facebook',
+      'ghost': 'ghost',
+      'googleads(adsense)': 'googleads',
+      'googleanalytics': 'googleanalytics',
+      'googletagmanager': 'googletagmanager',
+      'headlessui': 'headlessui',
+      'hotjar': 'hotjar',
+      'hubspotcms': 'hubspot',
+      'linkedininsighttag': 'linkedin',
+      'litespeed': 'litespeed',
+      'lodash': 'lodash',
+      'materialui(mui)': 'mui',
+      'materialize': 'materialdesign',
+      'microsoftclarity': 'microsoft',
+      'mixpanel': 'mixpanel',
+      'momentjs': 'momentjs',
+      'outbrain': 'outbrain',
+      'paypal': 'paypal',
+      'plausibleanalytics': 'plausibleanalytics',
+      'preact': 'preact',
+      'primevue': 'primevue',
+      'recaptcha': 'google',
+      'remix': 'remix',
+      'rxjs': 'reactivex',
+      'segment': 'segment',
+      'solidjs': 'solid',
+      'stripe': 'stripe',
+      'swiper': 'swiper',
+      'taboola': 'taboola',
+      'tiktokpixel': 'tiktok',
+      'uikit': 'uikit',
+      'hcaptcha': 'hcaptcha',
+      'wpengine': 'wordpress'
+    };
+
+    const finalIconifySlug = iconifyMap[slug] || slug;
+    return `https://api.iconify.design/simple-icons:${finalIconifySlug}.svg?color=%23cbd5e1`;
   }
 
   // Auto load on popup mount
