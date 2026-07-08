@@ -710,6 +710,20 @@ main {
   border-radius: 2px;
 }
 
+.tech-icon-container {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tech-fallback-svg {
+  width: 15px;
+  height: 15px;
+}
+
 .tech-metrics {
   display: flex;
   align-items: center;

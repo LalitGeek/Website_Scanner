@@ -309,12 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const itemRow = document.createElement('div');
         itemRow.className = 'tech-item';
         
-        const fallbackSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'></polyline><polyline points='8 6 2 12 8 18'></polyline></svg>`;
+        const category = item.category || 'Other';
         const iconUrl = getTechIconUrl(item.name);
         
         itemRow.innerHTML = `
           <div class="tech-meta-wrapper">
-            <img class="tech-logo-img" src="${iconUrl}" alt="${item.name}">
+            <div class="tech-icon-container" data-tech="${item.name}">
+              <img class="tech-logo-img" src="${iconUrl}" alt="${item.name}">
+            </div>
             <span class="tech-name-lbl">${item.name}</span>
             ${item.version ? `<span class="tech-ver-lbl">${item.version}</span>` : ''}
           </div>
@@ -323,7 +325,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = itemRow.querySelector('.tech-logo-img');
         if (img) {
           img.addEventListener('error', () => {
-            img.src = fallbackSvg;
+            const container = itemRow.querySelector('.tech-icon-container');
+            if (container) {
+              container.innerHTML = getCategorySvgInline(category);
+            }
           }, { once: true });
         }
 
@@ -574,6 +579,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const finalIconifySlug = iconifyMap[slug] || slug;
     return `https://api.iconify.design/simple-icons:${finalIconifySlug}.svg?color=%23cbd5e1`;
+  }
+
+  // Helper: Get inline category SVG fallback
+  function getCategorySvgInline(category) {
+    const cat = (category || '').toLowerCase();
+    const strokeColor = '#94a3b8'; // Premium slate gray
+    
+    if (cat.includes('database')) {
+      return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>`;
+    }
+    if (cat.includes('server')) {
+      return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>`;
+    }
+    if (cat.includes('cdn') || cat.includes('hosting') || cat.includes('paas')) {
+      return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>`;
+    }
+    if (cat.includes('analytics') || cat.includes('advertising') || cat.includes('tag manager')) {
+      return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`;
+    }
+    if (cat.includes('security') || cat.includes('captcha')) {
+      return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
+    }
+    if (cat.includes('cms')) {
+      return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>`;
+    }
+    if (cat.includes('css') || cat.includes('ui framework') || cat.includes('design')) {
+      return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>`;
+    }
+    
+    // Default fallback: Code tag </>
+    return `<svg class="tech-fallback-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
   }
 
   // Auto load on popup mount
