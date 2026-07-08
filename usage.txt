@@ -8,7 +8,7 @@ Follow these instructions to run and evaluate your audited pages using Scanify:
 - The glassmorphic SaaS dashboard will display. The scanner will automatically load pre-cached results or launch a live analysis of the active page.
 
 ### 2. Navigating the Dashboard Sections
-Scanify distributes complex audits across 4 premium panels:
+Scanify distributes complex audits across 5 premium panels:
 - **Overview**: 
   - **Audit Score**: A radial score (0-100) combining Security configuration and SEO validity.
   - **SaaS Indicators**: Fast diagnostics for Load Time (in ms) and total HTML script/image assets.
@@ -25,6 +25,11 @@ Scanify distributes complex audits across 4 premium panels:
   - Search Optimization metadata (Page Title, Meta Description, Canonical URL).
   - Headings pill count (H1, H2, H3 tags).
   - **Extracted Contacts**: Formatted emails and phone numbers discovered in the page content.
+- **Console (Dev & Storage)**:
+  - **PWA Status**: Checks Web Manifest file presence, Service Worker activity, and PWA capability status.
+  - **JS Insights**: Scans for loaded framework libraries (React, AngularJS, Vue, lodash, jQuery, HTMX, Alpine, etc.) and lists custom global variables declared on `window`.
+  - **Client Storage**: Displays count of active Cookies, LocalStorage items, and SessionStorage keys.
+  - **Storage Auditing**: Includes a detailed, scrollable Cookies grid checking Secure/HttpOnly security flags, plus badge lists of all Local/Session storage keys.
 
 ### 3. Header Action Controls
 At the top right of the dashboard, you have:
