@@ -230,6 +230,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (downloadMediaBtn) {
       downloadMediaBtn.disabled = !data.media || data.media.length === 0;
+      
+      chrome.runtime.sendMessage({
+        action: 'GET_MEDIA_DOWNLOAD_STATUS',
+        tabId: data.tabId
+      }, (statusResponse) => {
+        if (chrome.runtime.lastError) return;
+        if (statusResponse && statusResponse.status === 'downloading') {
+          downloadMediaBtn.disabled = true;
+          downloadMediaBtn.innerHTML = `Downloading (${statusResponse.downloaded}/${statusResponse.total})...`;
+        }
+      });
     }
 
     // Security health list
@@ -631,61 +642,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const downloadMediaBtn = document.getElementById('download-media-btn');
   if (downloadMediaBtn) {
-    downloadMediaBtn.addEventListener('click', async () => {
+    downloadMediaBtn.addEventListener('click', () => {
       if (!lastResults || !lastResults.media || lastResults.media.length === 0) return;
-      
-      const originalText = downloadMediaBtn.innerHTML;
+
       downloadMediaBtn.disabled = true;
-      downloadMediaBtn.innerHTML = 'Downloading...';
-      
-      let successCount = 0;
-      for (let i = 0; i < lastResults.media.length; i++) {
-        const url = lastResults.media[i];
-        try {
-          // Suggest filename based on URL path
-          let filename = '';
-          try {
-            const urlObj = new URL(url);
-            const pathname = urlObj.pathname;
-            filename = pathname.substring(pathname.lastIndexOf('/') + 1);
-          } catch (e) {}
-          
-          if (!filename || !filename.includes('.')) {
-            filename = `media_${i + 1}.png`;
-          }
-          
-          // Clean name for Chrome downloads (letters, numbers, dots, hyphens, underscores only)
-          filename = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-          
-          // Place downloaded media inside a dedicated folder for this hostname
-          const downloadPath = `Scanify_Media/${lastResults.hostname}/${filename}`;
-          
-          await new Promise((resolve) => {
-            chrome.downloads.download({
-              url: url,
-              filename: downloadPath,
-              conflictAction: 'uniquify'
-            }, () => {
-              if (chrome.runtime.lastError) {
-                console.warn('Download error:', chrome.runtime.lastError.message);
-              } else {
-                successCount++;
-              }
-              resolve();
-            });
-          });
-          // Rate-limit downloads slightly (100ms) to ensure stability
-          await new Promise(r => setTimeout(r, 100));
-        } catch (err) {
-          console.error('Failed to trigger download:', err);
+      downloadMediaBtn.innerHTML = 'Starting background download...';
+
+      chrome.runtime.sendMessage({
+        action: 'START_MEDIA_DOWNLOAD',
+        tabId: lastResults.tabId,
+        media: lastResults.media,
+        hostname: lastResults.hostname
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          downloadMediaBtn.innerHTML = 'Failed to start';
+          setTimeout(() => {
+            downloadMediaBtn.disabled = false;
+            downloadMediaBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="action-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Download All Media`;
+          }, 2000);
+          return;
         }
-      }
-      
-      downloadMediaBtn.innerHTML = `Success (${successCount}/${lastResults.media.length})`;
-      setTimeout(() => {
-        downloadMediaBtn.disabled = false;
-        downloadMediaBtn.innerHTML = originalText;
-      }, 3000);
+        if (response && response.status === 'started') {
+          downloadMediaBtn.innerHTML = `Downloading (0/${response.total})...`;
+        }
+      });
     });
   }
 
@@ -709,7 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Listen for real-time subdomain updates from background
+  // Listen for real-time subdomain and download progress updates from background
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'SUBDOMAIN_FOUND' && message.tabId === currentTabId) {
       if (lastResults) {
@@ -719,6 +699,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!lastResults.subdomains.includes(message.subdomain)) {
           lastResults.subdomains.push(message.subdomain);
           renderSubdomains(lastResults.subdomains);
+        }
+      }
+    }
+
+    if (message.action === 'MEDIA_DOWNLOAD_PROGRESS' && lastResults && message.tabId === lastResults.tabId) {
+      const downloadBtn = document.getElementById('download-media-btn');
+      if (downloadBtn) {
+        if (message.status === 'downloading') {
+          downloadBtn.disabled = true;
+          downloadBtn.innerHTML = `Downloading (${message.downloaded}/${message.total})...`;
+        } else if (message.status === 'completed') {
+          downloadBtn.disabled = false;
+          downloadBtn.innerHTML = `Success (${message.downloaded}/${message.total})`;
+          setTimeout(() => {
+            downloadBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="action-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Download All Media`;
+          }, 3500);
         }
       }
     }

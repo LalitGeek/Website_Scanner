@@ -145,58 +145,123 @@ function performAutoScan() {
   });
   data.paths = Array.from(internalPaths).slice(0, 10);
 
-  // Media Discovery (all images, background images, svgs, video sources)
+  // Media Discovery (Highest Quality, All Types, No Duplicates)
   const mediaUrls = new Set();
-  try {
-    // 1. Img tags
-    document.querySelectorAll('img').forEach(img => {
-      if (img.src) {
-        mediaUrls.add(img.src);
+  const mediaExtensions = /\.(jpg|jpeg|png|gif|webp|svg|avif|ico|mp4|webm|ogv|mov|mp3|wav|ogg|aac|m4a)$/i;
+
+  function cleanAndAdd(url) {
+    if (!url) return;
+    try {
+      const absoluteUrl = new URL(url, location.href).href;
+      const cleaned = getHighestQualityUrl(absoluteUrl);
+      const u = new URL(cleaned);
+      if (u.protocol.startsWith('http')) {
+        mediaUrls.add(cleaned);
       }
+    } catch (e) {}
+  }
+
+  function getHighestQualitySrcset(srcset) {
+    if (!srcset) return null;
+    const candidates = srcset.split(',').map(item => {
+      const parts = item.trim().split(/\s+/);
+      const url = parts[0];
+      let val = 1;
+      if (parts[1]) {
+        if (parts[1].endsWith('w')) {
+          val = parseInt(parts[1].slice(0, -1), 10) || 1;
+        } else if (parts[1].endsWith('x')) {
+          val = parseFloat(parts[1].slice(0, -1)) * 1000 || 1000;
+        }
+      }
+      return { url, val };
+    });
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => b.val - a.val);
+    return candidates[0].url;
+  }
+
+  function getHighestQualityUrl(url) {
+    try {
+      const u = new URL(url);
+      // Remove resizing query parameters to retrieve the original master resolution
+      const paramsToRemove = ['w', 'width', 'h', 'height', 'resize', 'size', 'thumb', 'thumbnail'];
+      paramsToRemove.forEach(p => {
+        if (u.searchParams.has(p)) u.searchParams.delete(p);
+      });
+      if (u.hostname.includes('gravatar.com')) {
+        u.searchParams.set('s', '2048');
+      }
+      return u.href;
+    } catch (e) {
+      return url;
+    }
+  }
+
+  try {
+    // 1. Img elements
+    document.querySelectorAll('img').forEach(img => {
       if (img.srcset) {
-        img.srcset.split(',').forEach(item => {
-          const parts = item.trim().split(/\s+/);
-          if (parts[0]) {
-            try {
-              mediaUrls.add(new URL(parts[0], location.href).href);
-            } catch (e) {}
-          }
-        });
+        const bestSrc = getHighestQualitySrcset(img.srcset);
+        if (bestSrc) cleanAndAdd(bestSrc);
+      } else if (img.src) {
+        cleanAndAdd(img.src);
       }
     });
 
-    // 2. CSS Background images
+    // 2. Picture source tags
+    document.querySelectorAll('picture source').forEach(source => {
+      if (source.srcset) {
+        const bestSrc = getHighestQualitySrcset(source.srcset);
+        if (bestSrc) cleanAndAdd(bestSrc);
+      }
+    });
+
+    // 3. Audio & Video elements
+    document.querySelectorAll('video, audio, video source, audio source').forEach(el => {
+      if (el.src) cleanAndAdd(el.src);
+    });
+
+    // 4. CSS Background assets
     document.querySelectorAll('*').forEach(el => {
       const bgImg = window.getComputedStyle(el).backgroundImage;
       if (bgImg && bgImg !== 'none') {
         const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
         if (match && match[1]) {
-          try {
-            mediaUrls.add(new URL(match[1], location.href).href);
-          } catch (e) {}
+          cleanAndAdd(match[1]);
         }
       }
     });
 
-    // 3. SVGs & Icons
+    // 5. Lightboxes / Anchors leading directly to media files
+    document.querySelectorAll('a').forEach(a => {
+      if (a.href) {
+        try {
+          const urlObj = new URL(a.href);
+          if (mediaExtensions.test(urlObj.pathname)) {
+            cleanAndAdd(a.href);
+          }
+        } catch (e) {}
+      }
+    });
+
+    // 6. Site favicons & page icons
     document.querySelectorAll('link[rel*="icon"]').forEach(link => {
-      if (link.href) mediaUrls.add(link.href);
+      if (link.href) cleanAndAdd(link.href);
     });
 
-    // 4. Video sources
-    document.querySelectorAll('video, video source').forEach(v => {
-      if (v.src) mediaUrls.add(v.src);
+    // 7. Embedded media objects
+    document.querySelectorAll('object').forEach(obj => {
+      if (obj.data) cleanAndAdd(obj.data);
     });
-  } catch (e) {}
+    document.querySelectorAll('embed').forEach(emb => {
+      if (emb.src) cleanAndAdd(emb.src);
+    });
+  } catch (e) {
+    console.error('Error scanning media assets:', e);
+  }
 
-  data.media = Array.from(mediaUrls).filter(url => {
-    try {
-      const u = new URL(url);
-      return u.protocol.startsWith('http');
-    } catch (e) {
-      return false;
-    }
-  });
+  data.media = Array.from(mediaUrls);
 
   // 1. PWA Detection
   const manifestLink = document.querySelector('link[rel="manifest"]');

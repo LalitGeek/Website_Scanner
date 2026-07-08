@@ -1,4 +1,5 @@
 let currentData = {};
+let activeDownloads = {};
 
 // Capture headers
 chrome.webRequest.onHeadersReceived.addListener(
@@ -123,6 +124,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true; // Keep channel open for async
   }
+
+  if (request.action === 'START_MEDIA_DOWNLOAD') {
+    const tabId = request.tabId;
+    const media = request.media || [];
+    const hostname = request.hostname || 'unknown';
+
+    activeDownloads[tabId] = {
+      total: media.length,
+      downloaded: 0,
+      failed: 0,
+      hostname: hostname,
+      status: 'downloading',
+      urls: media
+    };
+
+    startBackgroundDownload(tabId);
+    sendResponse({ status: 'started', total: media.length });
+    return false;
+  }
+
+  if (request.action === 'GET_MEDIA_DOWNLOAD_STATUS') {
+    sendResponse(activeDownloads[request.tabId] || { status: 'idle' });
+    return false;
+  }
 });
 
 function getRootDomain(hostname) {
@@ -227,4 +252,80 @@ async function fetchIPIntel(tabId, ip) {
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   delete currentData[tabId];
+  delete activeDownloads[tabId];
 });
+
+async function startBackgroundDownload(tabId) {
+  const downloadState = activeDownloads[tabId];
+  if (!downloadState || downloadState.urls.length === 0) return;
+
+  const urls = downloadState.urls;
+  const hostname = downloadState.hostname;
+
+  for (let i = 0; i < urls.length; i++) {
+    if (!activeDownloads[tabId] || activeDownloads[tabId].status !== 'downloading') {
+      break;
+    }
+
+    const url = urls[i];
+    try {
+      let filename = '';
+      try {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname;
+        filename = pathname.substring(pathname.lastIndexOf('/') + 1);
+      } catch (e) {}
+
+      if (!filename || !filename.includes('.')) {
+        filename = `media_${i + 1}.png`;
+      }
+
+      filename = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const downloadPath = `Scanify_Media/${hostname}/${filename}`;
+
+      await new Promise((resolve) => {
+        chrome.downloads.download({
+          url: url,
+          filename: downloadPath,
+          conflictAction: 'uniquify'
+        }, () => {
+          if (chrome.runtime.lastError) {
+            console.warn('Background download warning:', chrome.runtime.lastError.message);
+            if (activeDownloads[tabId]) activeDownloads[tabId].failed++;
+          } else {
+            if (activeDownloads[tabId]) activeDownloads[tabId].downloaded++;
+          }
+          resolve();
+        });
+      });
+
+      if (activeDownloads[tabId]) {
+        chrome.runtime.sendMessage({
+          action: 'MEDIA_DOWNLOAD_PROGRESS',
+          tabId: tabId,
+          downloaded: activeDownloads[tabId].downloaded,
+          failed: activeDownloads[tabId].failed,
+          total: activeDownloads[tabId].total,
+          status: 'downloading'
+        }).catch(() => {});
+      }
+
+      await new Promise(r => setTimeout(r, 120));
+    } catch (err) {
+      console.error('Background download loop error:', err);
+      if (activeDownloads[tabId]) activeDownloads[tabId].failed++;
+    }
+  }
+
+  if (activeDownloads[tabId]) {
+    activeDownloads[tabId].status = 'completed';
+    chrome.runtime.sendMessage({
+      action: 'MEDIA_DOWNLOAD_PROGRESS',
+      tabId: tabId,
+      downloaded: activeDownloads[tabId].downloaded,
+      failed: activeDownloads[tabId].failed,
+      total: activeDownloads[tabId].total,
+      status: 'completed'
+    }).catch(() => {});
+  }
+}
